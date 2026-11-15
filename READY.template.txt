@@ -1,1 +1,1 @@
-cmsmcp kit ready (launcher)
+cmsmcp kit ready (python mcp_server)
