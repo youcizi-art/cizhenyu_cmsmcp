@@ -29,6 +29,10 @@ stdio **按行 JSON**（newline-delimited JSON-RPC），与 Crawl4AI / Stagehand
 | `cms_entities_list` / `cms_entity_get` / `cms_entity_save` / `cms_entity_delete` | 实体 CRUD |
 | `cms_content_draft` / `cms_content_publish` | 文章类便捷写入 |
 | `cms_revalidate` | 前端缓存刷新 |
+| `cms_nav_group_ensure` | 幂等创建 `{siteKey}/*` 导航分组 |
+| `cms_models_ensure` | 三层字段合规校验并只增不改导入缺失模型 |
+| `cms_collections_ensure` | 幂等实例化 `{siteKey}_{logical}` 集合与公开/submit 策略 |
+| `cms_frontend_site_upsert` | 注册或更新 CMS 前端站点及 revalidate 密钥 |
 | `cms_tech_*` / `crawl_fetch` | 站点技术探测 |
 
 写操作需 `confirm=true`。

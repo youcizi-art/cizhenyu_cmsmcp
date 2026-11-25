@@ -117,6 +117,30 @@ class CmsClient:
     def get_frontend_sites(self) -> Any:
         return self.get("/api/sites/frontend")
 
+    def put_frontend_sites(self, sites: list[dict[str, Any]]) -> Any:
+        """保存前端站点注册列表（触发 CMS 保存后按分组通知 revalidate）"""
+        return self.put("/api/sites/frontend", {"sites": sites})
+
+    def create_nav_group(self, body: dict[str, Any]) -> Any:
+        """创建单个导航分组节点"""
+        return self.post("/api/schema/nav-groups", body)
+
+    def batch_import_models(self, models: list[dict[str, Any]]) -> Any:
+        """批量导入新模型（调用方须先过滤已存在模型以防覆盖全局模型）"""
+        return self.post("/api/schema/models/batch-import", models)
+
+    def batch_import_collections(self, collections: list[dict[str, Any]]) -> Any:
+        """批量导入站点集合实例（后端自动确保 groupPath 分组并跳过 409 已存在项）"""
+        return self.post("/api/schema/collections/batch-import", collections)
+
+    def list_languages(self) -> list[Any]:
+        """获取 CMS 当前已配置的内容语种"""
+        return _extract_list(self.get("/api/languages"))
+
+    def create_language(self, body: dict[str, Any]) -> Any:
+        """新增内容语种"""
+        return self.post("/api/languages", body)
+
     def list_entities_paginated(
         self,
         slug: str,

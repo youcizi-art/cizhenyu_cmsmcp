@@ -17,6 +17,7 @@ import sys
 import traceback
 from typing import Any
 
+import tools_bootstrap
 import tools_cms
 import tools_crawl
 import tools_schema
@@ -240,6 +241,69 @@ TOOLS: list[dict[str, Any]] = [
             "required": ["confirm"],
         },
     },
+    {
+        "name": "cms_nav_group_ensure",
+        "description": "Idempotently ensure site nav group hierarchy (e.g. {siteKey}/content, {siteKey}/products, {siteKey}/business, {siteKey}/settings). Requires confirm=true.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "siteKey": _SITE,
+                "site": _SITE,
+                "path": {"type": "string"},
+                "paths": {"type": "array", "items": {"type": "string"}},
+                "confirm": _CONFIRM,
+            },
+            "required": ["confirm"],
+        },
+    },
+    {
+        "name": "cms_models_ensure",
+        "description": "Validate three-layer field rules and create ONLY missing CMS models (never overwrites existing shared models). Requires confirm=true.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "siteKey": _SITE,
+                "site": _SITE,
+                "models": {"type": "array", "items": {"type": "object"}},
+                "confirm": _CONFIRM,
+            },
+            "required": ["models", "confirm"],
+        },
+    },
+    {
+        "name": "cms_collections_ensure",
+        "description": "Idempotently instantiate {siteKey}_{logical} collections under {siteKey}/* nav groups and configure public_read / submit_only API policies. Requires confirm=true.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "siteKey": _SITE,
+                "site": _SITE,
+                "collections": {"type": "array", "items": {"type": "object"}},
+                "corsOrigins": {"type": "array", "items": {"type": "string"}},
+                "skipExistingPolicy": {"type": "boolean"},
+                "confirm": _CONFIRM,
+            },
+            "required": ["collections", "confirm"],
+        },
+    },
+    {
+        "name": "cms_frontend_site_upsert",
+        "description": "Idempotently register or update a FrontendSite entry (siteKey, origin, revalidateUrl, revalidateSecret, groupIds) in CMS. Requires confirm=true.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "siteKey": _SITE,
+                "site": _SITE,
+                "displayName": {"type": "string"},
+                "siteOrigin": {"type": "string"},
+                "origin": {"type": "string"},
+                "revalidateUrl": {"type": "string"},
+                "revalidateSecret": {"type": "string"},
+                "confirm": _CONFIRM,
+            },
+            "required": ["confirm"],
+        },
+    },
 ]
 
 INSTRUCTIONS = (
@@ -367,6 +431,18 @@ def call_tool(name: str, args: dict[str, Any]) -> Any:
     if name == "cms_revalidate":
         _require_confirm(args, "刷新前端缓存")
         return tools_cms.revalidate(_client(fallback), site_key, args)
+    if name == "cms_nav_group_ensure":
+        _require_confirm(args, "创建站点导航分组")
+        return tools_bootstrap.nav_group_ensure(_client(fallback), args, site_key)
+    if name == "cms_models_ensure":
+        _require_confirm(args, "补齐缺失数据模型")
+        return tools_bootstrap.models_ensure(_client(fallback), args, site_key)
+    if name == "cms_collections_ensure":
+        _require_confirm(args, "实例化站点集合与公开策略")
+        return tools_bootstrap.collections_ensure(_client(fallback), args, site_key)
+    if name == "cms_frontend_site_upsert":
+        _require_confirm(args, "注册或更新前端站点")
+        return tools_bootstrap.frontend_site_upsert(_client(fallback), args, site_key)
 
     raise KeyError(name)
 
